@@ -12,8 +12,8 @@ import sys
 import tomllib
 
 from benchmarker.gguf import find_mmproj, model_info
-from src.benchmarker.progress import warn
-from src.benchmarker.utils import tilde
+from benchmarker.progress import warn
+from benchmarker.utils import tilde
 
 # ── Paths and state (module-level, like the original monolithic script) ──
 VERSION = "2.3.6"

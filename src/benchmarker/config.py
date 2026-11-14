@@ -16,7 +16,7 @@ from src.benchmarker.progress import warn
 from src.benchmarker.utils import tilde
 
 # ── Paths and state (module-level, like the original monolithic script) ──
-VERSION = "2.3"
+VERSION = "2.3.6"
 HERE = os.path.dirname(os.path.abspath(__file__))
 CONFIG = os.path.join(HERE, "..", "..", "models.toml")
 RESULTS = os.path.join(HERE, "..", "..", "results")

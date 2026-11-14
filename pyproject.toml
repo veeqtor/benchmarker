@@ -1,14 +1,12 @@
 [project]
 name = "benchmarker"
-version = "2.3.0"
+version = "2.3.6"
 description = "Benchmark and tuning tool for local GGUF models on GPU PCs"
 readme = "README.md"
 license = { text = "MIT" }
-authors = [
-    { name = "Victor Nwokeocha", email = "nwokeochavictor@gmail.com" }
-]
+authors = [{ name = "Victor Nwokeocha", email = "nwokeochavictor@gmail.com" }]
 requires-python = ">=3.11"
-dependencies = []          # stdlib-only — no runtime dependencies
+dependencies = []                                                              # stdlib-only — no runtime dependencies
 
 [project.scripts]
 benchmarker = "benchmarker:main"
@@ -29,6 +27,4 @@ python_functions = ["test_*"]
 addopts = "-v --tb=short"
 
 [dependency-groups]
-dev = [
-    "pytest>=8.0",
-]
+dev = ["pytest>=8.0"]

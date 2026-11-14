@@ -13,7 +13,7 @@ import time
 import urllib.request
 
 from benchmarker.client import Client
-from benchmarker.config import RESULTS
+from benchmarker.config import RESULTS, server_flags
 from benchmarker.utils import free_port, port_free
 
 # ── Track running servers ────────────────────────────────────────────────────

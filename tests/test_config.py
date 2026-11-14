@@ -1,7 +1,11 @@
 import pytest
 
 from benchmarker.config import (
-    DEFAULTS, PROFILES, merge_config, check_config, override_lines,
+    DEFAULTS,
+    PROFILES,
+    check_config,
+    merge_config,
+    override_lines,
 )
 
 

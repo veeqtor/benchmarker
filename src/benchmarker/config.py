@@ -297,14 +297,14 @@ def base_config(args=None, raw=None):
     raw = read_toml() if raw is None else raw
     cfg = merge_config(
         raw.get("defaults", {}),
-        (getattr(args, "profile", None) if args else None) or os.environ.get("LLMBENCH_PROFILE"),
+        (getattr(args, "profile", None) if args else None) or os.environ.get("BENCHMARKER_PROFILE"),
     )
     check_config(cfg)
     for env, key in (
-        ("LLMBENCH_LLAMA_DIR", "llama_dir"),
-        ("LLMBENCH_MODELS_DIR", "models_dir"),
-        ("LLMBENCH_BACKEND", "backend"),
-        ("LLMBENCH_SWAP_URL", "swap_url"),
+        ("BENCHMARKER_LLAMA_DIR", "llama_dir"),
+        ("BENCHMARKER_MODELS_DIR", "models_dir"),
+        ("BENCHMARKER_BACKEND", "backend"),
+        ("BENCHMARKER_SWAP_URL", "swap_url"),
     ):
         if os.environ.get(env):
             cfg[key] = os.environ[env]

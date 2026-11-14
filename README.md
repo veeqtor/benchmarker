@@ -44,7 +44,7 @@ uv run pytest tests/ -v                # 45 tests, all must pass
 
 ## Profiles
 
-Set the profile in `models.toml` (`[defaults]`, `profile = "long"`), with `--profile`, or with `LLMBENCH_PROFILE`.
+Set the profile in `models.toml` (`[defaults]`, `profile = "long"`), with `--profile`, or with `BENCHMARKER_PROFILE`.
 
 | Rule                                                    | `strict` (2.2) | `balanced` (default) | `long`      |
 | ------------------------------------------------------- | -------------- | -------------------- | ----------- |

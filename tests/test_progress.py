@@ -5,8 +5,8 @@ import tempfile
 import pytest
 
 import benchmarker.config as cfg_mod
-from benchmarker.progress import Progress, fmt_dur
 from benchmarker.commands import status_text
+from benchmarker.progress import Progress, fmt_dur
 
 
 @pytest.fixture

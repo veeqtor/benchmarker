@@ -20,10 +20,10 @@ Typical use
 
 Paths are found automatically (llama.cpp in /opt/llama.cpp or ~/llama.cpp, models in
 /srv/models or ~/models). Change them in models.toml [defaults], with environment
-variables (LLMBENCH_LLAMA_DIR, LLMBENCH_MODELS_DIR, LLMBENCH_BACKEND) or with options.
+variables (BENCHMARKER_LLAMA_DIR, BENCHMARKER_MODELS_DIR, BENCHMARKER_BACKEND) or with options.
 
 Decision rules (target context, speed limits, recall test) are in PROFILES: strict (the rules
-of 2.2), balanced (default) and long. Choose with --profile, LLMBENCH_PROFILE or
+of 2.2), balanced (default) and long. Choose with --profile, BENCHMARKER_PROFILE or
 profile = "..." in models.toml. 'report' and 'swap' judge saved results with the chosen profile.
 The rules are tested by `python3 -m pytest tests/`.
 

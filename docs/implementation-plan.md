@@ -12,7 +12,7 @@ The project uses `uv` as its package manager with a `src/` layout (`src/benchmar
 
 ```
 pyproject.toml                       # uv project: name=benchmarker, requires-python>=3.11
-                                     #   llmbench = "benchmarker:main" (CLI command)
+                                     #   benchmarker = "benchmarker:main" (CLI command)
 src/
   benchmarker/
     __init__.py                      # Package init: 41 __all__ exports, re-exports from submodules
@@ -95,8 +95,8 @@ docs/implementation-plan.md          # This file
 
 ```
 # Installed CLI (via `uv pip install .` or `uv build` + pip)
-llmbench doctor
-llmbench sweep all
+benchmarker doctor
+benchmarker sweep all
 
 # Direct package execution (python -m benchmarker)
 python -m benchmarker doctor
@@ -184,7 +184,7 @@ python -m benchmarker sweep all
 | Original Plan | Actual | Reason |
 |--------------|--------|--------|
 | `models.py` separate file | Model functions merged into `config.py` | `load_config`, `pick_models`, `need_tools`, `resolve_paths`, `resolve_model_path`, `rel_model_path` are tightly coupled with config |
-| `test_llmbench.py` in tests/ | Removed from root entirely | Tests migrated to module-specific files |
+| Old consolidated test file | Removed from root entirely | Tests migrated to `tests/` |
 | ~3,220 lines total | 3,826 lines | More docstrings, `__all__` exports, cleaner structure |
 | 45 tests | 45 tests + 7 placeholders | Placeholder files for future test development |
 
@@ -201,7 +201,7 @@ uv pip install -e ".[dev]"             # + pytest
 uv run pytest tests/ -v                # 45 tests
 
 # CLI (two entry points)
-llmbench doctor                        # installed CLI command
+benchmarker doctor                     # installed CLI command
 python -m benchmarker doctor           # package execution
 
 # Build
@@ -219,4 +219,4 @@ uv build                              # creates dist/benchmarker-2.3.0-py3-none-
 - **No third-party dependencies:** Only Python standard library used at runtime
 - **`src/` layout:** Package lives under `src/benchmarker/` following modern Python conventions
 - **Refactor-first:** Behaviour must remain identical — every phase is verified against the existing test suite and CLI output
-- **Entry point:** Two ways to run: `llmbench` (installed CLI), `python -m benchmarker` (package)
+- **Entry point:** Two ways to run: `benchmarker` (installed CLI), `python -m benchmarker` (package)

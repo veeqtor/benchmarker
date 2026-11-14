@@ -1,55 +1,55 @@
 name: Build & Test
 
 on:
-  push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
-  workflow_dispatch:
+    push:
+        branches: [main, master]
+    pull_request:
+        branches: [main, master]
+    workflow_dispatch:
 
 jobs:
-  test:
-    name: Test (Python ${{ matrix.python }})
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        python: ["3.11", "3.12", "3.13", "3.14"]
-    steps:
-      - uses: actions/checkout@v4
+    test:
+        name: Test (Python ${{ matrix.python }})
+        runs-on: ubuntu-24.04
+        strategy:
+            fail-fast: false
+            matrix:
+                python: ["3.11", "3.12", "3.13", "3.14"]
+        steps:
+            - uses: actions/checkout@v7
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
-        with:
-          python-version: ${{ matrix.python }}
-          activate-environment: true
+            - name: Install uv
+              uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+              with:
+                  python-version: ${{ matrix.python }}
+                  activate-environment: true
 
-      - name: Install dependencies
-        run: uv pip install -e . pytest
+            - name: Install dependencies
+              run: uv pip install -e . pytest
 
-      - name: Run tests
-        run: uv run pytest tests/ -v
+            - name: Run tests
+              run: uv run pytest tests/ -v
 
-  build:
-    name: Build wheel
-    runs-on: ubuntu-24.04
-    needs: test
-    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-    steps:
-      - uses: actions/checkout@v4
+    build:
+        name: Build wheel
+        runs-on: ubuntu-24.04
+        needs: test
+        if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        steps:
+            - uses: actions/checkout@v7
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
-        with:
-          python-version: "3.12"
-          activate-environment: true
+            - name: Install uv
+              uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+              with:
+                  python-version: "3.12"
+                  activate-environment: true
 
-      - name: Build wheel
-        run: uv build --wheel
+            - name: Build wheel
+              run: uv build --wheel
 
-      - name: Upload wheel artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: benchmarker-wheel
-          path: dist/benchmarker-*.whl
-          retention-days: 30
+            - name: Upload wheel artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: benchmarker-wheel
+                  path: dist/benchmarker-*.whl
+                  retention-days: 30

@@ -15,8 +15,8 @@ from benchmarker.config import RUN_ID, sdesc
 from benchmarker.io import append_csv
 from benchmarker.progress import PROGRESS, log
 from benchmarker.server import Server
-from benchmarker.test_image import VISION_Q, image_message, test_image
 from benchmarker.utils import now
+from benchmarker.vision_test import VISION_Q, generate_test_image, image_message
 
 # ------------------------------------------------------------------ haystack helpers
 _SYLLABLES = [c + v for c in "bdfgklmnprstvz" for v in "aeiou"]
@@ -190,7 +190,7 @@ def vision_series(cfg, client, model, label, runs=None, tick=False):
     rows = []
     for i in range(runs or cfg["vision_runs"]):
         (PROGRESS.tick if tick else PROGRESS.note)(f"image test, {label}")
-        png, number, colour = test_image(cfg["image_px"], seed=f"{RUN_ID}-{model}-{i}")
+        png, number, colour = generate_test_image(cfg["image_px"], seed=f"{RUN_ID}-{model}-{i}")
         row = {
             "run_id": RUN_ID,
             "time": now(),

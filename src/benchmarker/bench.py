@@ -38,9 +38,9 @@ class Fitter:
         if self.cfg["fit_warmup"]:
             chat(c, m["name"], [{"role": "user", "content": "Say OK."}], 4, t)
         if m["mmproj"] and self.cfg["image_fit"]:
-            from benchmarker.test_image import image_message, test_image
+            from benchmarker.vision_test import generate_test_image, image_message
 
-            png, _, _ = test_image(self.cfg["image_px"], seed=1)
+            png, _, _ = generate_test_image(self.cfg["image_px"], seed=1)
             chat(c, m["name"], image_message(png, "Describe the image in three words."), 8, t)
 
     def fits(self, ctx, s):

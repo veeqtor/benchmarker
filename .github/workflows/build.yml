@@ -10,7 +10,7 @@ on:
 jobs:
   test:
     name: Test (Python ${{ matrix.python }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -18,15 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           python-version: ${{ matrix.python }}
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          version: "0.5.x"
+          activate-environment: true
 
       - name: Install dependencies
         run: uv pip install -e . pytest
@@ -36,21 +32,17 @@ jobs:
 
   build:
     name: Build wheel
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: test
     if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           python-version: "3.12"
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          version: "0.5.x"
+          activate-environment: true
 
       - name: Build wheel
         run: uv build --wheel

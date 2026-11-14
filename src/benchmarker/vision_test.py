@@ -27,7 +27,7 @@ _FONT = {
 _COLORS = {"red": (220, 30, 30), "green": (20, 160, 40), "blue": (30, 60, 220)}
 
 
-def test_image(px, seed=None):
+def generate_test_image(px, seed=None):
     """Generate a PNG image with a random 4-digit number in a coloured frame.
 
     Returns (png_bytes, number, colour_name).

@@ -20,7 +20,7 @@ src/
     cli.py                           # argparse setup + dispatch
     config.py                        # DEFAULTS, PROFILES, merge/check/base config, model loading (478 lines)
     gguf.py                          # gguf_meta, model_files, is_mmproj, model_info, find_mmproj
-    test_image.py                    # test_image, image_message, VISION_Q
+    vision_test.py                   # test_image, image_message, VISION_Q
     client.py                        # Client, chat, http_error
     lock.py                          # Lock context manager
     progress.py                      # Progress class, tracked, log, warn
@@ -49,7 +49,7 @@ tests/
   test_lock.py                       # Placeholder — no tests yet
   test_report.py                     # Placeholder — no tests yet
   test_swap.py                       # Placeholder — no tests yet
-  test_test_image.py                 # Placeholder — no tests yet
+  test_vision_test.py                # Production tests
   test_utils.py                      # Placeholder — no tests yet
 results/progress.json                # Runtime progress state
 docs/implementation-plan.md          # This file
@@ -59,16 +59,16 @@ docs/implementation-plan.md          # This file
 
 ## Completed Phases
 
-| Phase | Files | Status | Notes |
-|-------|-------|--------|-------|
-| 1: Leaf modules | config.py, gguf.py, test_image.py, client.py, lock.py, utils.py | ✅ Complete | 8 files, ~1,208 lines |
-| 1a: Package entry point | __init__.py, __main__.py, cli.py, pyproject.toml | ✅ Complete | 4 files, 41 __all__ exports |
-| 1b: Test scaffolding | tests/ with 16 files | ✅ Complete | 45 active tests + 7 placeholders |
-| 2: Low-level modules | gpu.py | ✅ Complete | 1 file, ~154 lines |
-| 3: Domain modules | decisions.py, server.py, bench.py, accuracy.py | ✅ Complete | 4 files, ~1,020 lines |
-| 4: Report & Swap | report.py, swap.py | ✅ Complete | 2 files, ~605 lines |
-| 5: Commands & Entry Point | commands.py | ✅ Complete | 542 lines |
-| 6: Cleanup | README, __init__.py | ✅ Complete | All docs updated |
+| Phase                     | Files                                                            | Status      | Notes                            |
+| ------------------------- | ---------------------------------------------------------------- | ----------- | -------------------------------- |
+| 1: Leaf modules           | config.py, gguf.py, vision_test.py, client.py, lock.py, utils.py | ✅ Complete | 8 files, ~1,208 lines            |
+| 1a: Package entry point   | **init**.py, **main**.py, cli.py, pyproject.toml                 | ✅ Complete | 4 files, 41 **all** exports      |
+| 1b: Test scaffolding      | tests/ with 16 files                                             | ✅ Complete | 45 active tests + 7 placeholders |
+| 2: Low-level modules      | gpu.py                                                           | ✅ Complete | 1 file, ~154 lines               |
+| 3: Domain modules         | decisions.py, server.py, bench.py, accuracy.py                   | ✅ Complete | 4 files, ~1,020 lines            |
+| 4: Report & Swap          | report.py, swap.py                                               | ✅ Complete | 2 files, ~605 lines              |
+| 5: Commands & Entry Point | commands.py                                                      | ✅ Complete | 542 lines                        |
+| 6: Cleanup                | README, **init**.py                                              | ✅ Complete | All docs updated                 |
 
 ---
 
@@ -115,7 +115,7 @@ python -m benchmarker sweep all
                                  │ imports
         ┌────────┬────────┬──────┼───────┬────────┬────────┬────────┐
         ▼        ▼        ▼      ▼       ▼        ▼        ▼        ▼
-     config.py  gguf.py  utils.py  progress.py  io.py  client.py  lock.py  test_image.py
+     config.py  gguf.py  utils.py  progress.py  io.py  client.py  lock.py  vision_test.py
                     │        │           │          │
                     │        │           │          ├──────────► gpu.py
                     │        │           │          │
@@ -136,44 +136,44 @@ python -m benchmarker sweep all
 
 ## File-by-File Migration Status
 
-| #   | File                          | Lines | Status |
-| --- | ----------------------------- | ----- | ------ |
-| 1   | `src/benchmarker/__init__.py` | 118   | ✅ Complete |
-| 2   | `src/benchmarker/__main__.py` | 6     | ✅ Complete |
-| 3   | `src/benchmarker/cli.py`      | 138   | ✅ Complete |
-| 4   | `src/benchmarker/config.py`   | 478   | ✅ Complete (includes models.py functions) |
-| 5   | `src/benchmarker/gguf.py`     | 146   | ✅ Complete |
-| 6   | `src/benchmarker/test_image.py`| 94   | ✅ Complete |
-| 7   | `src/benchmarker/client.py`   | 74    | ✅ Complete |
-| 8   | `src/benchmarker/lock.py`     | 35    | ✅ Complete |
-| 9   | `src/benchmarker/utils.py`    | 123   | ✅ Complete |
-| 10  | `src/benchmarker/progress.py` | 209   | ✅ Complete |
-| 11  | `src/benchmarker/io.py`       | 84    | ✅ Complete |
-| 12  | `src/benchmarker/gpu.py`      | 154   | ✅ Complete |
-| 13  | `src/benchmarker/server.py`   | 122   | ✅ Complete |
-| 14  | `src/benchmarker/bench.py`    | 335   | ✅ Complete |
-| 15  | `src/benchmarker/accuracy.py` | 316   | ✅ Complete |
-| 16  | `src/benchmarker/decisions.py`| 247   | ✅ Complete |
-| 17  | `src/benchmarker/report.py`   | 442   | ✅ Complete |
-| 18  | `src/benchmarker/swap.py`     | 163   | ✅ Complete |
-| 19  | `src/benchmarker/commands.py` | 542   | ✅ Complete |
-| 20  | `pyproject.toml`              | 28    | ✅ Complete |
-| 21  | `tests/conftest.py`           | 7     | ✅ Complete |
-| 22  | `tests/test_config.py`        | 62    | ✅ Complete |
-| 23  | `tests/test_decisions.py`     | 230   | ✅ Complete |
-| 24  | `tests/test_progress.py`      | 92    | ✅ Complete |
-| 25  | `tests/test_accuracy.py`      | 64    | ✅ Complete |
-| 26  | `tests/test_bench.py`         | 1     | ⏸ Placeholder |
-| 27  | `tests/test_client.py`        | 1     | ⏸ Placeholder |
-| 28  | `tests/test_commands.py`      | 1     | ⏸ Placeholder |
-| 29  | `tests/test_gguf.py`          | 1     | ⏸ Placeholder |
-| 30  | `tests/test_gpu.py`           | 1     | ⏸ Placeholder |
-| 31  | `tests/test_io.py`            | 1     | ⏸ Placeholder |
-| 32  | `tests/test_lock.py`          | 1     | ⏸ Placeholder |
-| 33  | `tests/test_report.py`        | 1     | ⏸ Placeholder |
-| 34  | `tests/test_swap.py`          | 1     | ⏸ Placeholder |
-| 35  | `tests/test_test_image.py`    | 1     | ⏸ Placeholder |
-| 36  | `tests/test_utils.py`         | 1     | ⏸ Placeholder |
+| #   | File                             | Lines | Status                                     |
+| --- | -------------------------------- | ----- | ------------------------------------------ |
+| 1   | `src/benchmarker/__init__.py`    | 118   | ✅ Complete                                |
+| 2   | `src/benchmarker/__main__.py`    | 6     | ✅ Complete                                |
+| 3   | `src/benchmarker/cli.py`         | 138   | ✅ Complete                                |
+| 4   | `src/benchmarker/config.py`      | 478   | ✅ Complete (includes models.py functions) |
+| 5   | `src/benchmarker/gguf.py`        | 146   | ✅ Complete                                |
+| 6   | `src/benchmarker/vision_test.py` | 94    | ✅ Complete                                |
+| 7   | `src/benchmarker/client.py`      | 74    | ✅ Complete                                |
+| 8   | `src/benchmarker/lock.py`        | 35    | ✅ Complete                                |
+| 9   | `src/benchmarker/utils.py`       | 123   | ✅ Complete                                |
+| 10  | `src/benchmarker/progress.py`    | 209   | ✅ Complete                                |
+| 11  | `src/benchmarker/io.py`          | 84    | ✅ Complete                                |
+| 12  | `src/benchmarker/gpu.py`         | 154   | ✅ Complete                                |
+| 13  | `src/benchmarker/server.py`      | 122   | ✅ Complete                                |
+| 14  | `src/benchmarker/bench.py`       | 335   | ✅ Complete                                |
+| 15  | `src/benchmarker/accuracy.py`    | 316   | ✅ Complete                                |
+| 16  | `src/benchmarker/decisions.py`   | 247   | ✅ Complete                                |
+| 17  | `src/benchmarker/report.py`      | 442   | ✅ Complete                                |
+| 18  | `src/benchmarker/swap.py`        | 163   | ✅ Complete                                |
+| 19  | `src/benchmarker/commands.py`    | 542   | ✅ Complete                                |
+| 20  | `pyproject.toml`                 | 28    | ✅ Complete                                |
+| 21  | `tests/conftest.py`              | 7     | ✅ Complete                                |
+| 22  | `tests/test_config.py`           | 62    | ✅ Complete                                |
+| 23  | `tests/test_decisions.py`        | 230   | ✅ Complete                                |
+| 24  | `tests/test_progress.py`         | 92    | ✅ Complete                                |
+| 25  | `tests/test_accuracy.py`         | 64    | ✅ Complete                                |
+| 26  | `tests/test_bench.py`            | 1     | ⏸ Placeholder                              |
+| 27  | `tests/test_client.py`           | 1     | ⏸ Placeholder                              |
+| 28  | `tests/test_commands.py`         | 1     | ⏸ Placeholder                              |
+| 29  | `tests/test_gguf.py`             | 1     | ⏸ Placeholder                              |
+| 30  | `tests/test_gpu.py`              | 1     | ⏸ Placeholder                              |
+| 31  | `tests/test_io.py`               | 1     | ⏸ Placeholder                              |
+| 32  | `tests/test_lock.py`             | 1     | ⏸ Placeholder                              |
+| 33  | `tests/test_report.py`           | 1     | ⏸ Placeholder                              |
+| 34  | `tests/test_swap.py`             | 1     | ⏸ Placeholder                              |
+| 35  | `tests/test_vision_test.py`      | 9     | ✅ Complete                                |
+| 36  | `tests/test_utils.py`            | 1     | ⏸ Placeholder                              |
 
 **Total: 19 source files, 3,826 lines** + **16 test files, 45 active tests**
 
@@ -181,12 +181,12 @@ python -m benchmarker sweep all
 
 ## Deviations from Original Plan
 
-| Original Plan | Actual | Reason |
-|--------------|--------|--------|
-| `models.py` separate file | Model functions merged into `config.py` | `load_config`, `pick_models`, `need_tools`, `resolve_paths`, `resolve_model_path`, `rel_model_path` are tightly coupled with config |
-| Old consolidated test file | Removed from root entirely | Tests migrated to `tests/` |
-| ~3,220 lines total | 3,826 lines | More docstrings, `__all__` exports, cleaner structure |
-| 45 tests | 45 tests + 7 placeholders | Placeholder files for future test development |
+| Original Plan              | Actual                                  | Reason                                                                                                                              |
+| -------------------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `models.py` separate file  | Model functions merged into `config.py` | `load_config`, `pick_models`, `need_tools`, `resolve_paths`, `resolve_model_path`, `rel_model_path` are tightly coupled with config |
+| Old consolidated test file | Removed from root entirely              | Tests migrated to `tests/`                                                                                                          |
+| ~3,220 lines total         | 3,826 lines                             | More docstrings, `__all__` exports, cleaner structure                                                                               |
+| 45 tests                   | 45 tests + 7 placeholders               | Placeholder files for future test development                                                                                       |
 
 ---
 

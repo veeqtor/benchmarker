@@ -17,9 +17,26 @@ from benchmarker.utils import tilde
 
 # ── Paths and state (module-level, like the original monolithic script) ──
 VERSION = "2.3.6"
-HERE = os.path.dirname(os.path.abspath(__file__))
-CONFIG = os.path.join(HERE, "..", "..", "models.toml")
-RESULTS = os.path.join(HERE, "..", "..", "results")
+
+
+def _find_project_root():
+    """Walk up from this file to find the project root (where pyproject.toml lives)."""
+    d = os.path.dirname(os.path.abspath(__file__))
+    while True:
+        if os.path.exists(os.path.join(d, "pyproject.toml")):
+            return d
+
+        parent = os.path.dirname(d)
+        if parent == d:  # reached filesystem root
+            break
+
+        d = parent
+    return os.getcwd()
+
+
+PROJECT_ROOT = _find_project_root()
+CONFIG = os.environ.get("BENCHMARKER_CONFIG", os.path.join(PROJECT_ROOT, "models.toml"))
+RESULTS = os.environ.get("BENCHMARKER_RESULTS", os.path.join(PROJECT_ROOT, "results"))
 RUN_ID = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
 # ── Default configuration values ──────────────────────────────────────────
@@ -460,6 +477,7 @@ __all__ = [
     "NEEDLE_STYLES",
     "PATH_KEYS",
     "PROFILES",
+    "PROJECT_ROOT",
     "RESULTS",
     "RUN_ID",
     "base_config",

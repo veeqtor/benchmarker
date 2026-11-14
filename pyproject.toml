@@ -1,19 +1,34 @@
 [project]
 name = "benchmarker"
-version = "0.1.0"
-description = "Add your description here"
+version = "2.3.0"
+description = "Benchmark and tuning tool for local GGUF models on GPU PCs"
 readme = "README.md"
+license = { text = "MIT" }
 authors = [
     { name = "Victor Nwokeocha", email = "nwokeochavictor@gmail.com" }
 ]
-requires-python = ">=3.14"
-dependencies = [
-    "pytest>=9.2.0",
-]
+requires-python = ">=3.11"
+dependencies = []          # stdlib-only — no runtime dependencies
 
 [project.scripts]
-benchmarker = "benchmarker:main"
+llmbench = "benchmarker:main"
+
+[project.urls]
+Homepage = "https://github.com/<user>/llmbench"
+Repository = "https://github.com/<user>/llmbench"
+Issues = "https://github.com/<user>/llmbench/issues"
 
 [build-system]
 requires = ["uv_build>=0.13.8,<0.14.0"]
 build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.0",
+]

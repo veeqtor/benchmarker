@@ -1,4 +1,4 @@
-# llmbench 2.3 — benchmark and tuning tool for local models
+# benchmarker — benchmark and tuning tool for local GGUF models
 
 One tool for all GGUF models on the GPU PC. It reads each model's architecture, layers, experts and native context from the GGUF file. It finds the image encoder (`mmproj`) of vision models and tests text and images. It writes a ready llama-swap config from the results.
 
@@ -20,7 +20,7 @@ Version 2.2 rejected a context after one wrong value at 90% fill. This hid conte
 | Fixes                                           | A context with only request errors can no longer win over a context that passed. Server logs go to `results/logs/` (not `/tmp`)                               |
 | `report` and `swap`                             | Judge saved results with the current rules. Use `--profile` to compare profiles without a new sweep                                                           |
 | Progress display                                | Every line has a tag with model, phase and step. `status` shows the run from a second terminal (see "Progress")                                               |
-| `test_llmbench.py`                              | 40 unit tests for the rules and the progress display                                                                                                          |
+| `tests/`                                        | 45 pytest tests for the rules, progress display, and config — `python3 -m pytest tests/`                              |
 
 History: 2.2 cache choice by speed at depth. 2.1 stepwise accuracy search. 2.0 automatic paths, vision tests, `doctor`, `swap --install`.
 
@@ -28,34 +28,19 @@ History: 2.2 cache choice by speed at depth. 2.1 stepwise accuracy search. 2.0 a
 
 ```bash
 mkdir -p ~/llm-tests && cd ~/llm-tests
-# copy llmbench.py, test_llmbench.py and README.md into this folder
-chmod +x llmbench.py
-python3 -m unittest test_llmbench     # 40 tests, all must pass
-./llmbench.py doctor                  # all lines must be OK or WARN, no FAIL
-./llmbench.py init                    # scans the models folder and writes models.toml
-./llmbench.py info                    # check what it found
+# clone or copy the benchmarker package
+uv pip install -e .                    # installs benchmarker CLI
+python -m benchmarker doctor           # all lines must be OK or WARN, no FAIL
+python -m benchmarker init             # scans the models folder and writes models.toml
+python -m benchmarker info             # check what it found
 ```
 
-### Update from 2.2
+## Tests
 
-1. Copy the new `llmbench.py` and `test_llmbench.py` over the old files.
-2. Open `models.toml`. Remove this line from `[defaults]` (an old `init` wrote it, and it would replace the profile):
-
-   ```bash
-   sed -i '/^speed_tolerance_pct *=/d' models.toml
-   ```
-
-   `doctor` and `sweep` show a WARN line for each value that replaces the profile.
-
-3. Judge the saved results with the new rules. No new sweep is needed for the speed rule:
-
-   ```bash
-   ./llmbench.py report
-   ```
-
-   Old recall results have 3 values at 50% and 90% fill. They are judged with `accuracy_pct = [50, 75]`, so the 90% result is only shown, and all 3 values must be right at 50%. Run `sweep --accuracy` again to get 5-value results with one allowed miss.
-
-4. `accuracy.csv` has new columns. The old file is renamed to `accuracy.old-<run_id>.csv`.
+```bash
+uv pip install -e ".[dev]"             # or: uv add --dev pytest
+uv run pytest tests/ -v                # 45 tests, all must pass
+```
 
 ## Profiles
 
@@ -82,10 +67,10 @@ Use `balanced` for daily work. Use `long` if `balanced` rejects a context you wa
 Each long command (`sweep`, `fill`, `vision`) shows where it is.
 
 ```
----- sweep model 2/3: qwen3.6-35b-a3b | accuracy 0/3 | run 41:10 | model 12:02 | later models ~28:00 ----
+---- sweep model 2/3: my-model | accuracy 0/3 | run 41:10 | model 12:02 | later models ~28:00 ----
 [2/3 accuracy 1/3 +41:12]   accuracy: ctx=196608 ngl=41 kv=f16 n-cpu-moe=25
 [2/3 accuracy 1/3 +46:30]   fill   50%  ctx=196608 prompt=97245 ... 5/5 PASS
-  ... still working: sweep model 2/3: qwen3.6-35b-a3b | accuracy 2/3 | long-prompt tests: ctx=131072 ... | run 52:00
+  ... still working: sweep model 2/3: my-model | accuracy 2/3 | long-prompt tests: ctx=131072 ... | run 52:00
 ```
 
 | Part                        | Meaning                                                                                                                                                                                                |
@@ -99,23 +84,23 @@ Phases: `fit`, `speed`, `accuracy`, `tune`, `image` (for `fill`: `fill`).
 In a second terminal (for example another SSH session):
 
 ```bash
-./llmbench.py status               # once
-./llmbench.py status --watch 10    # every 10 seconds, ends with the run
+python -m benchmarker status               # once
+python -m benchmarker status --watch 10    # every 10 seconds, ends with the run
 ```
 
 `status` reads `results/progress.json`. It shows `running`, `finished`, `stopped` (Ctrl+C or kill) or `failed`. If the state is `running` but the process is gone, it says so. Use `--results` if you started the run with this option.
 
 ## How the decision works
 
-For each model and each KV cache type, llmbench checks every tested context:
+For each model and each KV cache type, benchmarker checks every tested context:
 
 1. **Fit.** The model loads with the safe margin (`min_free_vram_mb`, `min_free_ram_mb`) and answers a text request (and an image request for vision models).
-2. **Speed.** Generation speed (`tg128`) is not more than `speed_tolerance_pct` below the best speed of this cache type. With a filled context it is at least `min_tg_tps`. For contexts from the target up, llmbench measures the speed with the context 50% full (`bench_deep_fill_pct`).
+2. **Speed.** Generation speed (`tg128`) is not more than `speed_tolerance_pct` below the best speed of this cache type. With a filled context it is at least `min_tg_tps`. For contexts from the target up, benchmarker measures the speed with the context 50% full (`bench_deep_fill_pct`).
 3. **Recall** (only with `--accuracy`). The context is filled to each level of `accuracy_pct`. The model must find `accuracy_min_pct` of the hidden values. The test starts at the largest context that passes the speed rule and goes down (`accuracy_max_steps`, default 4) until one passes. If a level fails, the next level is not tested.
 
 **Optimum context** = the largest context that passes 1, 2 and 3. Without `--accuracy`, the result says `speed only`.
 
-**Cache type.** If more than one cache type reaches the target, llmbench takes the best quality (f16, then q8_0, then q4_0) whose speed with a filled context is at least 85% of the fastest. If none reaches the target, it takes the largest context.
+**Cache type.** If more than one cache type reaches the target, benchmarker takes the best quality (f16, then q8_0, then q4_0) whose speed with a filled context is at least 85% of the fastest. If none reaches the target, it takes the largest context.
 
 **Target.** The result line and the report say `TARGET 131072: met` or `NOT met` with the reason:
 
@@ -150,19 +135,19 @@ Options for all commands: `--profile`, `--backend`, `--llama-dir`, `--models-dir
 ```bash
 cd ~/llm-tests
 
-./llmbench.py sweep all --stop-swap                         # all models, speed only (approx. 1–2 h)
-./llmbench.py sweep all --accuracy --stop-swap              # with recall (overnight)
-./llmbench.py sweep qwen3.6-35b-a3b --accuracy --stop-swap  # one model
-./llmbench.py sweep all --quick --skip-tune --stop-swap     # fast check after an update
+python -m benchmarker sweep all --stop-swap                         # all models, speed only (approx. 1–2 h)
+python -m benchmarker sweep all --accuracy --stop-swap              # with recall (overnight)
+python -m benchmarker sweep <model-name> --accuracy --stop-swap  # one model
+python -m benchmarker sweep all --quick --skip-tune --stop-swap     # fast check after an update
 
-./llmbench.py report --profile long                         # judge the saved results with another profile
-./llmbench.py swap --profile long                           # config for that profile
+python -m benchmarker report --profile long                         # judge the saved results with another profile
+python -m benchmarker swap --profile long                           # config for that profile
 
-./llmbench.py fill qwen3.6-35b-a3b --pct 50,75              # through llama-swap
-./llmbench.py vision all                                    # images through llama-swap
+python -m benchmarker fill <model-name> --pct 50,75              # through llama-swap
+python -m benchmarker vision all                                    # images through llama-swap
 
-./llmbench.py swap                                          # check the file and the warnings
-./llmbench.py swap --install                                # backup + install
+python -m benchmarker swap                                          # check the file and the warnings
+python -m benchmarker swap --install                                # backup + install
 ```
 
 `--stop-swap` and `swap --install` use `sudo`.
@@ -183,7 +168,7 @@ cd ~/llm-tests
 
 ## models.toml
 
-`init` writes this file. Any value of `DEFAULTS` or of the profile in `llmbench.py` can be set in `[defaults]`.
+`init` writes this file. Any value of `DEFAULTS` or of the profile in `benchmarker.config` can be set in `[defaults]`.
 
 ```toml
 [defaults]
@@ -200,21 +185,16 @@ profile = "balanced"                # strict, balanced or long
 # swap_config = "/etc/llama-swap.yaml"
 # swap_url = "http://127.0.0.1:9931"
 
-[models."qwen3-coder-next"]
-path = "qwen3-coder-next/Qwen3-Coder-Next-UD-Q4_K_XL.gguf"
-display_name = "Qwen3-Coder-Next (coding, text)"
+[models."my-model"]
+path = "my-model/MyModel-UD-Q4_K_M.gguf"
+display_name = "My Model (text)"
 cache_types = ["f16", "q8_0"]
-run_flags = ["--temp", "1.0", "--top-p", "0.95", "--top-k", "40", "--min-p", "0.01"]
+run_flags = ["--temp", "0.6", "--top-p", "0.95", "--top-k", "20", "--min-p", "0.01"]
 
-[models."qwen3.6-35b-a3b"]
-path = "qwen3.6-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf"
-display_name = "Qwen3.6-35B-A3B (text + image)"
+[models."my-vision-model"]
+path = "my-vision-model/MyVisionModel-UD-Q4_K_M.gguf"
+display_name = "My Vision Model (text + image)"
 cache_types = ["f16", "q8_0"]
-run_flags = ["--temp", "0.6", "--top-p", "0.95", "--top-k", "20", "--min-p", "0.0"]
-
-[models."qwen3.8-27b"]
-path = "qwen3.8-27b/Qwen3.8-27B-UD-IQ4_XS.gguf"
-display_name = "Qwen3.8-27B (text + image)"
 mmproj_offload = false              # image encoder in RAM: more layers on the GPU
 run_flags = ["--temp", "0.6", "--top-p", "0.95", "--top-k", "20", "--min-p", "0.0"]
 ```
@@ -236,9 +216,9 @@ run_flags = ["--temp", "0.6", "--top-p", "0.95", "--top-k", "20", "--min-p", "0.
 ```bash
 mkdir -p /srv/models/<model-name>
 hf download <repo> --include "*<QUANT>*" "mmproj-F16.gguf" --local-dir /srv/models/<model-name>
-./llmbench.py init && ./llmbench.py info
-./llmbench.py sweep <model-name> --accuracy --stop-swap
-./llmbench.py swap --install
+python -m benchmarker init && python -m benchmarker info
+python -m benchmarker sweep <model-name> --accuracy --stop-swap
+python -m benchmarker swap --install
 ```
 
 The folder name becomes the model ID in llama-swap. Leave out `mmproj-F16.gguf` for text-only models.
@@ -287,4 +267,4 @@ The report and the generated config contain no API key (`apiKeys` reads `${env.L
 | `Cannot read /etc/llama-swap.env`         | `sudo chown $USER: /etc/llama-swap.env`, or `export LLAMA_SWAP_API_KEY=<key>`             |
 | `swap --install`: models would be removed | The current config has models without results. Run `sweep` for them, or use `--force`     |
 | Run stopped with Ctrl+C                   | All test servers are stopped. Finished models are saved; run `report`                     |
-| After a change of the code                | `python3 -m unittest test_llmbench`                                                       |
+| After a change of the code                | `python3 -m pytest tests/`                                                              |

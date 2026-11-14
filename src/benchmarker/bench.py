@@ -37,6 +37,7 @@ class Fitter:
         c, m, t = srv.client(), self.m, self.cfg["request_timeout_s"]
         if self.cfg["fit_warmup"]:
             chat(c, m["name"], [{"role": "user", "content": "Say OK."}], 4, t)
+
         if m["mmproj"] and self.cfg["image_fit"]:
             from benchmarker.vision_test import generate_test_image, image_message
 
@@ -47,6 +48,7 @@ class Fitter:
         key = (ctx, json.dumps({k: v for k, v in s.items() if k != "threads"}, sort_keys=True))
         if key in self.cache:
             return self.cache[key]
+
         PROGRESS.tick(f"fit test: ctx={ctx} {sdesc(s)}")
         wait_vram_released(self.cfg, self.baseline_used)
         _, _, free0 = vram_mb(self.cfg)

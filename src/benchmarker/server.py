@@ -119,4 +119,5 @@ class Server:
             for l in lines:
                 if re.search(pat, l, re.IGNORECASE):
                     return l.strip()[:200]
+
         return lines[-1].strip()[:200] if lines else ""

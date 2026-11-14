@@ -89,6 +89,6 @@ VISION_Q = (
 
 __all__ = [
     "VISION_Q",
+    "generate_test_image",
     "image_message",
-    "test_image",
 ]

@@ -202,7 +202,11 @@ def vision_series(cfg, client, model, label, runs=None, tick=False):
         }
         try:
             data, secs = chat(
-                client, model, image_message(png, VISION_Q), 64, cfg["request_timeout_s"]
+                client,
+                model,
+                image_message(png, VISION_Q),
+                64,
+                cfg["request_timeout_s"],
             )
             ans = (data["choices"][0]["message"].get("content") or "").strip()
             mt = re.search(r"NUMBER\s*[=:]\s*([\d\s,.]+)", ans, re.IGNORECASE)

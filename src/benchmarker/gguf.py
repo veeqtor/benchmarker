@@ -132,15 +132,15 @@ def find_mmproj(model_path):
                 return i
         return len(MMPROJ_PREFERENCE)
 
-    return sorted(files, key=lambda p: (rank(p), p))[0]
+    return min(files, key=lambda p: (rank(p), p))
 
 
 __all__ = [
     "MMPROJ_PREFERENCE",
-    "gguf_meta",
-    "model_files",
-    "is_mmproj",
-    "is_extra_part",
-    "model_info",
     "find_mmproj",
+    "gguf_meta",
+    "is_extra_part",
+    "is_mmproj",
+    "model_files",
+    "model_info",
 ]

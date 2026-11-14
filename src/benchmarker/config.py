@@ -12,6 +12,8 @@ import sys
 import tomllib
 
 from benchmarker.gguf import find_mmproj, model_info
+from src.benchmarker.progress import warn
+from src.benchmarker.utils import tilde
 
 # ── Paths and state (module-level, like the original monolithic script) ──
 VERSION = "2.3"
@@ -297,7 +299,8 @@ def base_config(args=None, raw=None):
     raw = read_toml() if raw is None else raw
     cfg = merge_config(
         raw.get("defaults", {}),
-        (getattr(args, "profile", None) if args else None) or os.environ.get("BENCHMARKER_PROFILE"),
+        (getattr(args, "profile", None) if args else None)
+        or os.environ.get("BENCHMARKER_PROFILE"),
     )
     check_config(cfg)
     for env, key in (
@@ -470,9 +473,9 @@ __all__ = [
     "profile_summary",
     "read_toml",
     "rel_model_path",
+    "required_hits",
     "resolve_model_path",
     "resolve_paths",
-    "required_hits",
     "sdesc",
     "server_flags",
 ]

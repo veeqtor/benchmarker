@@ -8,16 +8,14 @@ config.py (constants, PROFILES, etc.).
 import collections
 import re
 
-from benchmarker.config import CACHE_QUALITY, PROFILES, required_hits, sdesc
+from benchmarker.config import CACHE_QUALITY, required_hits, sdesc
 
 
 # ------------------------------------------------------------------ helpers
 def speed_at_depth(st):
     """(depth, t/s) of the deepest tg128 measurement of a setting."""
     tg = [
-        (int(k.split("@")[1]), v)
-        for k, v in st.get("speed", {}).items()
-        if k.startswith("tg128@")
+        (int(k.split("@")[1]), v) for k, v in st.get("speed", {}).items() if k.startswith("tg128@")
     ]
     return max(tg) if tg else (0, 0)
 
@@ -82,8 +80,7 @@ def accuracy_state(cfg, acc, cache, context):
     if not rows:
         return "UNTESTED", ""
     detail = " ".join(
-        f"{a['score']}@{a['pct']}%"
-        for a, _ in sorted(rows, key=lambda r: int(r[0]["pct"]))
+        f"{a['score']}@{a['pct']}%" for a, _ in sorted(rows, key=lambda r: int(r[0]["pct"]))
     )
     return ("FAIL" if any(v == "fail" for _, v in rows) else "PASS"), detail
 
@@ -113,8 +110,7 @@ def gate_rows(cfg, sts, acc):
     accuracy_ran = any(r["accuracy"] != "UNTESTED" for r in rows)
     for r in rows:
         r["ok"] = r["speed_ok"] and (
-            r["accuracy"] == "PASS"
-            or (r["accuracy"] == "UNTESTED" and not accuracy_ran)
+            r["accuracy"] == "PASS" or (r["accuracy"] == "UNTESTED" and not accuracy_ran)
         )
         why = []
         if not r["speed_ok"]:
@@ -138,9 +134,7 @@ def choose_cache(cfg, picks):
     """Among the cache types that reach target_context: the best quality that keeps
     at least 85% of the fastest one's speed with a filled context."""
     target = cfg["target_context"]
-    reach = [
-        c for c, p in picks.items() if p["reliable"] and p["optimum"]["context"] >= target
-    ]
+    reach = [c for c, p in picks.items() if p["reliable"] and p["optimum"]["context"] >= target]
     if reach:
         fastest = max(deep_tg(picks[c]["optimum"]) for c in reach)
         return min(
@@ -173,11 +167,7 @@ def recommend(cfg, settings, acc):
         if good:
             best = max(good)
         else:
-            maybe = [
-                g["context"]
-                for g in gates
-                if g["speed_ok"] and g["accuracy"] != "FAIL"
-            ]
+            maybe = [g["context"] for g in gates if g["speed_ok"] and g["accuracy"] != "FAIL"]
             best = max(maybe) if maybe else sts[0]["context"]
         picks[cache] = {
             "maximum": sts[-1],

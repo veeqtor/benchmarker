@@ -131,6 +131,7 @@ def cmd_swap(args):
     text = swap_yaml(cfg, states)
     with open(path, "w") as f:
         f.write(text)
+
     log(text)
     for n, st in states.items():
         fs = final_setting(cfg, st)
@@ -151,12 +152,15 @@ def cmd_swap(args):
     if not args.install:
         log(f"Check it, then: {sys.argv[0]} swap --install   (backs up {cfg['swap_config']})")
         return
+
     if missing and not args.force:
         sys.exit("Not installed: models would be removed. Use --force to install anyway.")
+
     dst = cfg["swap_config"]
     if os.path.exists(dst):
         subprocess.run(["sudo", "cp", "-p", dst, f"{dst}.bak-{RUN_ID}"], check=True)
         log(f"Backup: {dst}.bak-{RUN_ID}")
+
     subprocess.run(["sudo", "install", "-m", "644", path, dst], check=True)
     log(
         f"Installed: {dst}. llama-swap reloads it with --watch-config; otherwise: "

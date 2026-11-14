@@ -92,7 +92,9 @@ def gpu_dir(cfg):
     for d in glob.glob("/sys/class/drm/card*/device"):
         p = os.path.join(d, "mem_info_vram_total")
         if os.path.exists(p):
-            total = int(open(p).read())
+            with open(p) as f:
+                total = int(f.read())
+
             if not best or total > best[0]:
                 best = (total, d)
     if not best:
@@ -104,16 +106,23 @@ def gpu_dir(cfg):
 def vram_mb(cfg):
     """Read VRAM total/used/free from AMD GPU sysfs (in MiB)."""
     d = gpu_dir(cfg)
-    total = int(open(os.path.join(d, "mem_info_vram_total")).read()) // 1048576
-    used = int(open(os.path.join(d, "mem_info_vram_used")).read()) // 1048576
+    path = os.path.join(d, "mem_info_vram_total")
+    with open(path) as f:
+        total = int(f.read()) // 1048576
+
+    path = os.path.join(d, "mem_info_vram_used")
+    with open(path) as f:
+        used = int(f.read()) // 1048576
+
     return total, used, total - used
 
 
 def ram_free_mb():
     """Read available RAM from /proc/meminfo (in MiB)."""
-    for line in open("/proc/meminfo"):
-        if line.startswith("MemAvailable"):
-            return int(line.split()[1]) // 1024
+    with open("/proc/meminfo") as f:
+        for line in f:
+            if line.startswith("MemAvailable"):
+                return int(line.split()[1]) // 1024
     return 0
 
 
@@ -121,11 +130,12 @@ def physical_cores():
     """Count physical CPU cores from /proc/cpuinfo."""
     cores, phys = set(), None
     try:
-        for line in open("/proc/cpuinfo"):
-            if line.startswith("physical id"):
-                phys = line.split(":")[1].strip()
-            elif line.startswith("core id"):
-                cores.add((phys, line.split(":")[1].strip()))
+        with open("/proc/cpuinfo") as f:
+            for line in f:
+                if line.startswith("physical id"):
+                    phys = line.split(":")[1].strip()
+                elif line.startswith("core id"):
+                    cores.add((phys, line.split(":")[1].strip()))
     except OSError:
         pass
     return len(cores) or max(1, (os.cpu_count() or 2) // 2)

@@ -13,6 +13,7 @@ from benchmarker.config import (
     RUN_ID,
     SETTING_KEYS,
     VERSION,
+    load_config,
     override_lines,
     profile_summary,
     sdesc,
@@ -24,7 +25,7 @@ from benchmarker.decisions import (
     speed_at_depth,
     why_below_target,
 )
-from benchmarker.gpu import physical_cores, vram_mb
+from benchmarker.gpu import physical_cores, ram_free_mb, vram_mb
 from benchmarker.io import load_states, read_csv
 from benchmarker.progress import log, warn
 from benchmarker.swap import swap_yaml
@@ -106,9 +107,11 @@ def report_header(cfg, models):
     L += [f"WARNING: {line}" for line in override_lines(cfg)]
     L += [
         "",
-        "Speed values come from llama-bench (text only, no image encoder). "
-        "The fit tests use llama-server with the image encoder and, "
-        "for vision models, one image request.",
+        (
+            "Speed values come from llama-bench (text only, no image encoder). "
+            "The fit tests use llama-server with the image encoder and, "
+            "for vision models, one image request."
+        ),
         "",
         "## Models",
         "",
@@ -116,22 +119,22 @@ def report_header(cfg, models):
     L.append(
         table(
             [
-                dict(
-                    model=n,
-                    arch=m["info"]["arch"],
-                    type=m["type"],
-                    layers=m["info"]["layers"],
-                    experts=f"{m['info']['experts']}/{m['info']['experts_used']}",
-                    attn_layers=m["info"]["attn_layers"] or "-",
-                    native_ctx=m["info"]["native_ctx"],
-                    size_mib=m["info"]["size_mib"],
-                    file=os.path.basename(m["path"]),
-                    vision=(
+                {
+                    "model": n,
+                    "arch": m["info"]["arch"],
+                    "type": m["type"],
+                    "layers": m["info"]["layers"],
+                    "experts": f"{m['info']['experts']}/{m['info']['experts_used']}",
+                    "attn_layers": m["info"]["attn_layers"] or "-",
+                    "native_ctx": m["info"]["native_ctx"],
+                    "size_mib": m["info"]["size_mib"],
+                    "file": os.path.basename(m["path"]),
+                    "vision": (
                         os.path.basename(m["mmproj"]) + ("" if m["mmproj_offload"] else " (RAM)")
                     )
                     if m["mmproj"]
                     else "-",
-                )
+                }
                 for n, m in models.items()
             ],
             [
@@ -437,6 +440,7 @@ def cmd_report(args):
     os.makedirs(RESULTS, exist_ok=True)
     with open(path, "w") as f:
         f.write("\n".join(L))
+
     log(f"\nReport: {path}")
     for line in override_lines(cfg):
         warn(line)

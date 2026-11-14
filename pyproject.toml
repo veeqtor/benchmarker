@@ -14,9 +14,9 @@ dependencies = []          # stdlib-only — no runtime dependencies
 benchmarker = "benchmarker:main"
 
 [project.urls]
-Homepage = "https://github.com/<user>/benchmarker"
-Repository = "https://github.com/<user>/benchmarker"
-Issues = "https://github.com/<user>/benchmarker/issues"
+Homepage = "https://github.com/veeqtor/benchmarker"
+Repository = "https://github.com/veeqtor/benchmarker"
+Issues = "https://github.com/veeqtor/benchmarker/issues"
 
 [build-system]
 requires = ["uv_build>=0.13.8,<0.14.0"]

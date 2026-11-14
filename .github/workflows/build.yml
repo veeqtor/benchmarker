@@ -53,3 +53,24 @@ jobs:
                   name: benchmarker-wheel
                   path: dist/benchmarker-*.whl
                   retention-days: 30
+
+    release:
+        name: Create GitHub Release
+        runs-on: ubuntu-24.04
+        needs: build
+        permissions:
+            contents: write
+        if: github.event_name == 'workflow_dispatch' || (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        steps:
+            - name: Download artifact
+              uses: actions/download-artifact@v7
+              with:
+                  name: benchmarker-wheel
+                  path: dist/
+
+            - name: Create Release
+              uses: softprops/action-gh-release@v3
+              if: github.ref_type == 'tag'
+              with:
+                  files: dist/*.whl
+                  generate_release_notes: true

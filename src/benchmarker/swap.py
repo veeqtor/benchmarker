@@ -18,6 +18,7 @@ from benchmarker.config import (
     server_flags,
 )
 from benchmarker.decisions import final_setting, why_below_target
+from benchmarker.gpu import setup_devices
 from benchmarker.io import load_states
 from benchmarker.progress import log, warn
 from benchmarker.utils import now, run_text
@@ -119,7 +120,7 @@ def swap_models_in(path):
 
 def cmd_swap(args):
     """Write + optionally install llama-swap config."""
-    from benchmarker.config import load_config, setup_devices
+    from benchmarker.config import load_config
 
     cfg, _ = load_config(args)
     if cfg["server"]:
